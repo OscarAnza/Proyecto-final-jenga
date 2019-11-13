@@ -19,6 +19,8 @@ int movX = 0;
 int movY = 0;
 int movZ = 0;
 
+bool col = false;
+
 class Pieza{
 	private:
 		float x = 0;
@@ -48,6 +50,9 @@ class Pieza{
 		float getCx();
 		float getCy();
 		float getCz();
+		float getDistX();
+		float getDistY();
+		float getDistZ();
 };
 
 void Pieza::drawPrism(GLenum mode){
@@ -114,11 +119,26 @@ float Pieza::getCz(){
 	return cZ;
 }
 
+float Pieza::getDistX(){
+	return vertexs[6][0];
+}
+
+float Pieza::getDistY(){
+	return vertexs[6][1];
+}
+
+float Pieza::getDistZ(){
+	return vertexs[6][2];
+}
+
 // Drawing routine.
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
+
+	//glRotatef(45, 1.0, 0.0, 0.0);
+	//glRotatef(10, 0.0, 0.0, 1.0);
 
 	Pieza p1 = Pieza(20, 10, 10);
 	Pieza p2 = Pieza(20, 10, 10);
@@ -128,14 +148,14 @@ void drawScene(void)
 	glColor3f(1.0, 0.0, 0.0);
 	p1.drawPrism(GL_LINE);
 
-	cout << p1.getCx() << " " << p1.getCy() << " " << p1.getCz() << endl;
-	cout << p2.getCx() << " " << p2.getCy() << " " << p2.getCz() << endl;
+	cout << (p1.getCx() + p1.getDistX() / 2) + movX << " " << (p2.getCx() - p2.getDistX() / 2) + (100 - movX) << endl;
 
-	if(p1.getCx() == p2.getCx() && p1.getCy() == p2.getCy() && p1.getCz() == p2.getCz()){
+	if(  - ((p2.getCx() - p2.getDistX() / 2) + (100 - movX)) == 0){
 		cout << "colision" << endl;
+		col = true;
 	}
 
-	glTranslatef(100 - movX * 2, 0.0, 0.0);
+	glTranslatef(100 - movX * 2, -5.0, 0.0);
 	glColor3f(1.0, 0.0, 1.0);
 	p2.drawPrism(GL_LINE);
 
@@ -154,14 +174,14 @@ void resize(int w, int h)
 	glViewport(0, 0, w, h); 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, 100, 0, 100, -1, 1);
+	glOrtho(0, 100, 0, 100, -100, 100);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
 
 void Timer(int value) {
-	if(movX < 50) movX++;
+	if(movX < 50 && !col) movX++;
 
 	glutPostRedisplay();
 	glutTimerFunc(refresh, Timer, 0);
