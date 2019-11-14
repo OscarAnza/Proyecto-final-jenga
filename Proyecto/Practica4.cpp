@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#define MAX_PIEZAS 30
+
 // Globals.
 float refresh = 100.0;
 
@@ -19,6 +21,7 @@ int movX = 0;
 int movY = 0;
 int movZ = 0;
 
+bool inicio = true;
 bool col = false;
 
 class Pieza{
@@ -31,6 +34,7 @@ class Pieza{
 		float cY;
 		float cZ;
 	public:
+		Pieza(){};
 		Pieza(float disX, float disY, float disZ){
 			vertexs[0][0] = x;    vertexs[0][1] = y;    vertexs[0][2] = z;
 			vertexs[1][0] = disX; vertexs[1][1] = y;    vertexs[1][2] = z;
@@ -131,33 +135,69 @@ float Pieza::getDistZ(){
 	return vertexs[6][2];
 }
 
+Pieza piezas[MAX_PIEZAS];
+
+void armarTorre(){
+	float posX = 1.5;
+	float posY = 0;
+	float posZ = 1.5;
+	int piezasPorLinea = 0;
+	bool subir = false;
+	bool g1 = true;
+
+	glTranslatef(-3.5, -5.0, -4.0);
+	glRotatef(90, 0.0, 1.0, 0.0);
+
+	for(int i = 0; i < 9; i++){
+		if(g1)
+			glTranslatef(0.0, 0.0, posZ);
+		else
+			glTranslatef(0.0, 0.0, -posZ);
+
+		glColor3f(1.0, 0.0, 0.0);
+		piezas[i].drawPrism(GL_FILL);
+		glColor3f(0.0, 0.0, 0.0);		
+		piezas[i].drawPrism(GL_LINE);
+		
+		piezasPorLinea++;
+
+		if(piezasPorLinea == 3){
+			posY = 1.5;
+			piezasPorLinea = 0;
+			subir = true;
+			
+			if(g1){
+				glRotatef(-90, 0.0, 1.0, 0.0);
+				glTranslatef(-3.0, posY, 0.0);
+				g1 = false;
+			} else{
+				glRotatef(90, 0.0, 1.0, 0.0);
+				glTranslatef(-4.5, posY, 4.0);
+				g1 = true;
+			}
+			
+		}	
+	}
+}
+
 // Drawing routine.
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
 
-	//glRotatef(45, 1.0, 0.0, 0.0);
-	//glRotatef(10, 0.0, 0.0, 1.0);
-
-	Pieza p1 = Pieza(20, 10, 10);
-	Pieza p2 = Pieza(20, 10, 10);
-
-	// Position of the base
-	glTranslatef(movX, 50, 0);
-	glColor3f(1.0, 0.0, 0.0);
-	p1.drawPrism(GL_LINE);
-
-	cout << (p1.getCx() + p1.getDistX() / 2) + movX << " " << (p2.getCx() - p2.getDistX() / 2) + (100 - movX) << endl;
-
-	if(  - ((p2.getCx() - p2.getDistX() / 2) + (100 - movX)) == 0){
-		cout << "colision" << endl;
-		col = true;
+	for(int i = 0; i < MAX_PIEZAS; i++){
+		piezas[i] = Pieza(4.5, 1.5, 1.5);
 	}
 
-	glTranslatef(100 - movX * 2, -5.0, 0.0);
-	glColor3f(1.0, 0.0, 1.0);
-	p2.drawPrism(GL_LINE);
+	armarTorre();
+	
+	//cout << (p1.getCx() + p1.getDistX() / 2) + movX << " " << (p2.getCx() - p2.getDistX() / 2) + (100 - movX) << endl;
+
+	/*if(((p1.getCx() + p1.getDistX() / 2) + movX) - ((p2.getCx() - p2.getDistX() / 2) + (100 - movX)) == 0){
+		cout << "colision" << endl;
+		col = true;
+	}*/
 
 	glutSwapBuffers();
 }
@@ -174,8 +214,8 @@ void resize(int w, int h)
 	glViewport(0, 0, w, h); 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, 100, 0, 100, -100, 100);
-
+	//glOrtho(0, 100, 0, 100, -100, 100);
+	glFrustum(-5.0, 5.0, -5.0, 5.0, 3.0, 100.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
@@ -213,10 +253,10 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA); 
 	glutInitWindowSize(500, 500);
 	glutInitWindowPosition(100, 100); 
-	glutCreateWindow("Robotic Arm");
+	glutCreateWindow("Jenga");
 	glutDisplayFunc(drawScene); 
 	glutReshapeFunc(resize);  
-	glutTimerFunc(0, Timer, 0);
+	//glutTimerFunc(0, Timer, 0);
 	glewInit(); 
 	printInteraction();
 
